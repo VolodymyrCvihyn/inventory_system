@@ -1,21 +1,26 @@
-    FROM python:3.11-slim
+FROM python:3.11-slim
 
-    # Встановлюємо пакет tzdata, який містить інформацію про часові пояси
-    RUN apt-get update && apt-get install -y tzdata
-    
-    # --- ЗМІНА ТУТ: Використовуємо сучасну назву ---
-    ENV TZ=Europe/Kyiv
+RUN apt-get update && apt-get install -y tzdata
+ENV TZ=Europe/Kyiv
 
-    ENV PYTHONDONTWRITEBYTECODE 1
-    ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-    WORKDIR /app
+WORKDIR /app
 
-    COPY requirements.txt .
-    RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-    COPY . .
+# --- ЗМІНИ ТУТ ---
+# Копіюємо наш стартовий скрипт
+COPY entrypoint.sh /entrypoint.sh
+# Робимо його виконуваним
+RUN chmod +x /entrypoint.sh
 
-    # Ця команда залишається без змін
-    CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
+COPY . .
 
+# Вказуємо Docker запускати наш скрипт
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Команда, яка буде передана в скрипт (в змінну "$@")
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
