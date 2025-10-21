@@ -5,8 +5,6 @@ ENV TZ=Europe/Kyiv
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-# Додаємо змінну PORT, яку буде використовувати Gunicorn
-ENV PORT 8000
 
 WORKDIR /app
 
@@ -15,6 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# --- ЗМІНА ТУТ: Використовуємо одну команду для запуску ---
-# Ця команда виконає всі кроки послідовно при кожному старті контейнера
-CMD python manage.py migrate && python manage.py create_initial_superuser && gunicorn --bind "0.0.0.0:$PORT" core.wsgi:application
+# Команда CMD більше не потрібна, ми вкажемо її в Render
