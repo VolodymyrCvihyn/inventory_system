@@ -12,6 +12,12 @@ from .serializers import CabinetSerializer, ContainerSerializer, TransactionSeri
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import MyTokenObtainPairSerializer
 
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny]) # Доступ для всіх, без авторизації
+def health_check(request):
+    """Простий ендпоінт, який повертає 200 OK."""
+    return JsonResponse({'status': 'ok'})
+
 class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
