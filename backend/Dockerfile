@@ -11,16 +11,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- ЗМІНИ ТУТ ---
-# Копіюємо наш стартовий скрипт
+# Копіюємо наш стартовий скрипт всередину образу
 COPY entrypoint.sh /entrypoint.sh
 # Робимо його виконуваним
 RUN chmod +x /entrypoint.sh
 
 COPY . .
 
-# Вказуємо Docker запускати наш скрипт
+# Вказуємо Docker, що /entrypoint.sh є головним скриптом, який запускається
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Команда, яка буде передана в скрипт (в змінну "$@")
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
+# Видаляємо стару команду CMD, оскільки тепер запуск Gunicorn відбувається всередині entrypoint.sh
+
