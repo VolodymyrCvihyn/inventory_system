@@ -5,21 +5,16 @@ ENV TZ=Europe/Kyiv
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+# Додаємо змінну PORT, яку буде використовувати Gunicorn
+ENV PORT 8000
 
 WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копіюємо наш стартовий скрипт всередину образу
-COPY entrypoint.sh /entrypoint.sh
-# Робимо його виконуваним
-RUN chmod +x /entrypoint.sh
-
 COPY . .
 
-# Вказуємо Docker, що /entrypoint.sh є головним скриптом, який запускається
-ENTRYPOINT ["/entrypoint.sh"]
-
-# Видаляємо стару команду CMD, оскільки тепер запуск Gunicorn відбувається всередині entrypoint.sh
-
+# --- ЗМІНА ТУТ: Використовуємо одну команду для запуску ---
+# Ця команда виконає всі кроки послідовно при кожному старті контейнера
+CMD python manage.py migrate && python manage.py create_initial_superuser && gunicorn --bind "0.0.0.0:$PORT" core.wsgi:application
