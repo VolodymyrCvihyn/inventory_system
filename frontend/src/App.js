@@ -1,7 +1,6 @@
 // frontend/src/App.js
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, Link, Outlet } from 'react-router-dom';
-// --- ЗМІНА ТУТ: імпортуємо replenishContainer ---
 import { getSummaryReport, replenishContainer } from './services/api';
 import LoginPage from './pages/LoginPage';
 import ScannerPage from './pages/ScannerPage';
@@ -12,7 +11,7 @@ import ReportsPage from './pages/ReportsPage';
 import PrintPage from './pages/PrintPage';
 import './App.css';
 import { jwtDecode } from 'jwt-decode';
-import { Button, Box, IconButton, Badge, Menu, MenuItem, Typography, Tooltip, AppBar, Toolbar, CssBaseline } from '@mui/material';
+import { Button, Box, IconButton, Badge, Menu, MenuItem, Typography, Tooltip, AppBar, Toolbar, CssBaseline, CircularProgress } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const Layout = ({ user, onLogout }) => {
@@ -20,46 +19,37 @@ const Layout = ({ user, onLogout }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
 
-    const fetchLowStockData = async () => {
-        if (user.role === 'ADMINISTRATOR') {
-            try {
-                const response = await getSummaryReport();
-                setLowStockItems(response.data.low_stock_items);
-            } catch (error) {
-                console.error("Не вдалося завантажити сповіщення", error);
-            }
-        }
-    };
-    
     useEffect(() => {
-        fetchLowStockData();
-        const interval = setInterval(fetchLowStockData, 300000); 
-        return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        if (user.role === 'ADMINISTRATOR') {
+            const fetchLowStockData = async () => {
+                try {
+                    const response = await getSummaryReport();
+                    setLowStockItems(response.data.low_stock_items);
+                } catch (error) { console.error("Не вдалося завантажити сповіщення", error); }
+            };
+            fetchLowStockData();
+            const interval = setInterval(fetchLowStockData, 300000); 
+            return () => clearInterval(interval);
+        }
     }, [user.role]);
 
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
-    // --- ЗМІНА ТУТ: Повністю нова логіка для handleNotificationClick ---
     const handleNotificationClick = async (item) => {
-        handleMenuClose(); // Закриваємо меню
+        handleMenuClose();
         const quantityStr = prompt(`Введіть кількість для поповнення "${item.name}" (поточний залишок: ${item.current_quantity.toFixed(2)})`);
-        
         if (quantityStr) {
             const quantity = parseFloat(quantityStr);
             if (!isNaN(quantity) && quantity > 0) {
                 try {
                     await replenishContainer(item.id, quantity);
-                    // Перезавантажуємо сторінку, щоб оновити всі дані - і лічильник, і залишки
                     window.location.reload();
                 } catch (error) {
                     alert('Помилка поповнення.');
                     console.error("Помилка поповнення:", error);
                 }
-            } else {
-                alert('Будь ласка, введіть коректне додатне число.');
-            }
+            } else { alert('Будь ласка, введіть коректне додатне число.'); }
         }
     };
 
@@ -127,8 +117,9 @@ const Layout = ({ user, onLogout }) => {
     );
 };
 
+// --- ОСНОВНИЙ КОМПОНЕНТ APP ---
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // Початковий стан 'undefined' для невизначеності
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -140,13 +131,15 @@ function App() {
                 setUser({ id: decodedUser.user_id, username: decodedUser.username, role: decodedUser.role });
               } else {
                 localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
+                setUser(null); // Явно вказуємо, що користувача немає
               }
           } catch (error) {
               console.error("Недійсний токен:", error);
               localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
+              setUser(null);
           }
+      } else {
+        setUser(null); // Якщо токена немає, користувача точно немає
       }
   }, []);
   
@@ -161,19 +154,31 @@ function App() {
 
   const handleLogout = () => {
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       setUser(null);
       navigate('/login');
   };
 
+  // Поки ми перевіряємо токен, показуємо екран завантаження
+  if (user === undefined) {
+      return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+              <CircularProgress />
+          </Box>
+      );
+  }
+
   return (
       <Routes>
-          {!user ? (
+          {/* Маршрути, доступні тільки коли користувач НЕ увійшов */}
+          {!user && (
               <>
                   <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
                   <Route path="*" element={<Navigate to="/login" />} />
               </>
-          ) : (
+          )}
+
+          {/* Маршрути, доступні тільки коли користувач УВІЙШОВ */}
+          {user && (
               <Route path="/" element={<Layout user={user} onLogout={handleLogout} />}>
                   {user.role === 'ADMINISTRATOR' ? (
                       <>
@@ -186,6 +191,8 @@ function App() {
                   ) : (
                       <Route index element={<ScannerPage />} />
                   )}
+                  {/* Якщо залогінений користувач зайде на /login, його перекине на головну */}
+                  <Route path="/login" element={<Navigate to="/" />} />
                   <Route path="*" element={<Navigate to="/" />} />
               </Route>
           )}
