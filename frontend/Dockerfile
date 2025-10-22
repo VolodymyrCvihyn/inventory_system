@@ -9,9 +9,12 @@ RUN npm run build
 
 # Етап 2: Створення сервера на Nginx
 FROM nginx:1.25-alpine
+
+# --- ЗМІНА ТУТ: Встановлюємо кореневі сертифікати ---
+RUN apk add --no-cache ca-certificates
+
 COPY --from=builder /app/build /usr/share/nginx/html
 RUN rm /etc/nginx/conf.d/default.conf
-# --- ЗМІНА ТУТ: Коментар прибрано ---
 COPY nginx.conf /etc/nginx/conf.d/app.conf 
 EXPOSE 80 
 CMD ["nginx", "-g", "daemon off;"]
