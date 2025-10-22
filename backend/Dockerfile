@@ -6,7 +6,7 @@ ENV TZ=Europe/Kyiv
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Ця змінна буде автоматично ПЕРЕЗАПИСАНА Render
+# Ця змінна буде автоматично ПЕРЕЗАПИСАНА Render (зазвичай на 10000)
 ENV PORT 10000
 
 WORKDIR /app
@@ -16,5 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Вся логіка запуску в одній команді, використовуємо змінну $PORT
+# --- ЗМІНА ТУТ: Гарантовано використовуємо $PORT ---
+# Gunicorn тепер буде запускатися на порту, який вкаже Render
 CMD python manage.py migrate && python manage.py create_initial_superuser && gunicorn --bind "0.0.0.0:$PORT" core.wsgi:application
