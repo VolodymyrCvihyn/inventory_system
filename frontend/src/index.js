@@ -15,4 +15,4 @@ root.render(
 );
 
 // Змінюємо unregister() на register()
-serviceWorkerRegistration.register();
+serviceWorkerRegistration.unregister();
