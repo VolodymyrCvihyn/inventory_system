@@ -7,15 +7,15 @@ RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
+# --- ЗМІНА ТУТ: Використовуємо стандартний образ Nginx ---
 # Етап 2: Створення сервера на Nginx
-FROM nginx:1.25-alpine
+FROM nginx:latest
 
-# Встановлюємо кореневі сертифікати для HTTPS проксі
-RUN apk add --no-cache ca-certificates
+# Встановлення ca-certificates тут вже не потрібне, зазвичай він є в Debian
 
 COPY --from=builder /app/build /usr/share/nginx/html
+# Видаляємо стандартну конфігурацію, щоб уникнути конфліктів
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/app.conf 
+COPY nginx.conf /etc/nginx/conf.d/app.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-
