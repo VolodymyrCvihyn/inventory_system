@@ -11,11 +11,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копіюємо ВЕСЬ наш код (включно з entrypoint.sh)
 COPY . .
 
-# Робимо наш стартовий скрипт виконуваним
 RUN chmod +x /app/entrypoint.sh
 
-# Вказуємо Docker, що наш скрипт є точкою входу
 ENTRYPOINT ["/app/entrypoint.sh"]
