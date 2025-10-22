@@ -18,15 +18,3 @@ COPY . .
 
 # Вся логіка запуску в одній команді, використовуємо змінну $PORT
 CMD python manage.py migrate && python manage.py create_initial_superuser && gunicorn --bind "0.0.0.0:$PORT" core.wsgi:application
-```
-
-### ## Наступні кроки
-
-1.  **Збережіть** зміни у `backend/Dockerfile`.
-2.  **Завантажте зміни на GitHub:**
-    ```bash
-    git add .
-    git commit -m "Remove extraneous line from Dockerfile"
-    git push
-    
-
