@@ -18,5 +18,5 @@ COPY . .
 
 # --- ЗМІНА ТУТ: Жорстко вказуємо порт 10000 ---
 # Gunicorn тепер буде запускатися саме на порту 10000
-CMD python manage.py migrate && python manage.py create_initial_superuser && gunicorn --bind "0.0.0.0:10000" core.wsgi:application
+CMD python manage.py migrate && python manage.py create_initial_superuser && gunicorn --bind "0.0.0.0:8000" core.wsgi:application
 
