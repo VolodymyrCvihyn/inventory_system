@@ -1,19 +1,20 @@
-FROM python:3.11-slim
-
-RUN apt-get update && apt-get install -y tzdata
-ENV TZ=Europe/Kyiv
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
+# frontend/Dockerfile
+# Етап 1: Збірка React-додатку
+FROM node:18-alpine AS builder
 WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
 COPY . .
+RUN npm run build
 
-RUN chmod +x /app/entrypoint.sh
+# Етап 2: Створення сервера на Nginx
+FROM nginx:latest
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Встановлюємо кореневі сертифікати (для HTTPS proxy_pass)
+RUN apt-get update && apt-get install -y ca-certificates
 
+COPY --from=builder /app/build /usr/share/nginx/html
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/app.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
