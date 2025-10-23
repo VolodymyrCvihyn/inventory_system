@@ -5,7 +5,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-for-dev-environment')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://inventory-backend-99jm.onrender.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -85,7 +85,5 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://inventory-frontend-wajk.onrender.com",
+    'https://inventory-frontend-wajk.onrender.com',
 ]
-
-#CORS_ALLOW_ALL_ORIGINS = True
